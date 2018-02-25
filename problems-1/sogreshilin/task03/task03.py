@@ -10,13 +10,13 @@ def is_prime(n):
 
 
 def eratosthenes_list(upper_bound):
-    sieve = [i for i in range(2, upper_bound)]
+    sieve = list(range(upper_bound))
 
     for i in range(2, int(math.sqrt(upper_bound)) + 1):
         for j in range(i * 2, upper_bound, i):
-            if j in sieve: sieve.remove(j)
+            sieve[j] = 0
 
-    return sieve
+    return [value for (index, value) in enumerate(sieve) if index > 1 and value != 0]
 
 
 def eratosthenes_set(upper_bound):
