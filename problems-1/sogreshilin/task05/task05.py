@@ -3,8 +3,6 @@ import unittest
 
 
 def is_prime(n):
-    if n == 0:
-        return False
     last_factor = int(math.sqrt(n))
     return all(n % i for i in range(2, last_factor + 1))
 
