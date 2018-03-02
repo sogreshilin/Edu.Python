@@ -10,13 +10,14 @@ def is_prime(n):
 
 
 def eratosthenes_list(upper_bound):
-    sieve = list(range(upper_bound))
+    sieve = [True] * upper_bound
 
     for i in range(2, int(math.sqrt(upper_bound)) + 1):
-        for j in range(i * 2, upper_bound, i):
-            sieve[j] = 0
+        if sieve[i]:
+            for j in range(i * 2, upper_bound, i):
+                sieve[j] = False
 
-    return [value for (index, value) in enumerate(sieve) if index > 1 and value != 0]
+    return [i for i in range(2, upper_bound) if sieve[i]]
 
 
 def eratosthenes_set(upper_bound):
@@ -34,8 +35,9 @@ def eratosthenes_bitarray(upper_bound):
     bits.setall(True)
 
     for i in range(2, int(math.sqrt(upper_bound)) + 1):
-        for j in range(i * 2, upper_bound, i):
-            bits[j] = False
+        if bits[i]:
+            for j in range(i * 2, upper_bound, i):
+                bits[j] = False
 
     return [i for i in range(2, upper_bound) if bits[i]]
 
@@ -48,7 +50,7 @@ def measure_time(func, *args, **kwargs):
 
 class TestEratosthenes(unittest.TestCase):
     small_n = 10_000
-    big_n = 100_000_000
+    big_n = 10_000_000
 
     def test_simple(self):
         self.assertEqual(eratosthenes_list(3), [2])
