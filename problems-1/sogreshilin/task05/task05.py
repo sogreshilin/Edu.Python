@@ -3,6 +3,8 @@ import unittest
 
 
 def is_prime(n):
+    if n < 2:
+        return False
     last_factor = int(math.sqrt(n))
     return all(n % i for i in range(2, last_factor + 1))
 
@@ -25,4 +27,5 @@ class TestPrimes(unittest.TestCase):
         self.assertEqual(first_primes_le(9), [2, 3, 5, 7])
 
 
-
+if __name__ == "__main__":
+    unittest.main()
