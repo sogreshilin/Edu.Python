@@ -1,11 +1,15 @@
 import unittest
 
+from math import sqrt, ceil
+
 
 def prime_factor(n):
+    last_possible_factor = ceil(sqrt(n))
+
     factors = []
     factor = 2
 
-    while n > 1:
+    while factor <= last_possible_factor:
         counter = 0
         while n % factor == 0:
             counter += 1
@@ -14,6 +18,9 @@ def prime_factor(n):
         if counter > 0:
             factors.append([factor, counter])
         factor += 1
+
+    if n > 1:
+        factors.append([n, 1])
 
     return factors
 
@@ -35,7 +42,8 @@ class TestPrimeFactorization(unittest.TestCase):
         self.assertEqual(prime_factor(2 ** 32 - 1), factors)
 
     def test_prime_bigint(self):
-        self.assertEqual(prime_factor(2 ** 31 - 1), [])
+        table_prime = 32_416_190_071
+        self.assertEqual(prime_factor(table_prime), [[table_prime, 1]])
 
 
 if __name__ == "__main__":
