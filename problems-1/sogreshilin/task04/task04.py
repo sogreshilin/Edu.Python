@@ -21,7 +21,7 @@ def ls_size_sorted(dir_path):
             file_info = os.stat(path_to_file)
             file_sizes.append((entry, file_info.st_size))
 
-    return sorted(file_sizes, key=lambda x: (-x[1], x[0]))
+    return sorted(file_sizes, key=lambda element: (-element[1], element[0]))
 
 
 if __name__ == "__main__":
