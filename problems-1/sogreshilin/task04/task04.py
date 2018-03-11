@@ -7,23 +7,37 @@ def ls_size_sorted(dir_path):
     if not isdir(dir_path):
         raise ValueError(dir_path + " is not a directory")
 
-    sizeof_files = {}
+    if not os.access(dir_path, os.F_OK):
+        raise ValueError(dir_path + " does not exist")
+
+    if not os.access(dir_path, os.R_OK):
+        raise ValueError("Permission denied " + dir_path)
+
+    file_sizes = list()
 
     for entry in os.listdir(dir_path):
         path_to_file = join(dir_path, entry)
         if isfile(path_to_file):
             file_info = os.stat(path_to_file)
-            sizeof_files[entry] = file_info.st_size
+            file_sizes.append((entry, file_info.st_size))
 
-    return sorted(sizeof_files.keys(), key=sizeof_files.get, reverse=True)
-
-
-def main():
-    if len(sys.argv) < 2:
-        raise ValueError("Directory name was not found")
-
-    print(*ls_size_sorted(sys.argv[1]), sep="\n")
+    return sorted(file_sizes, key=lambda x: (-x[1], x[0]))
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) < 2:
+        print("Directory name was not found", file=sys.stderr)
+        sys.exit(-1)
+
+    dir_path = sys.argv[1]
+    max_filename_len = 20
+
+    try:
+        for filename, size in ls_size_sorted(dir_path):
+            print(filename.ljust(max_filename_len)[:max_filename_len], size)
+
+    except ValueError as error:
+        print(error, file=sys.stdin)
+        sys.exit(-1)
+
+    sys.exit(0)
