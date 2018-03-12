@@ -4,15 +4,6 @@ from os.path import isfile, isdir, join
 
 
 def ls_size_sorted(dir_path):
-    if not isdir(dir_path):
-        raise ValueError(dir_path + " is not a directory")
-
-    if not os.access(dir_path, os.F_OK):
-        raise ValueError(dir_path + " does not exist")
-
-    if not os.access(dir_path, os.R_OK):
-        raise ValueError("Permission denied " + dir_path)
-
     file_sizes = list()
 
     for entry in os.listdir(dir_path):
@@ -36,8 +27,8 @@ if __name__ == "__main__":
         for filename, size in ls_size_sorted(dir_path):
             print(filename.ljust(max_filename_len)[:max_filename_len], size)
 
-    except ValueError as error:
-        print(error, file=sys.stdin)
+    except Exception as exception:
+        print(exception, file=sys.stderr)
         sys.exit(-1)
 
     sys.exit(0)
