@@ -3,9 +3,10 @@ if __name__ == "__main__":
 
     while True:
         try:
-            float(input())
+            int(input())
             break
         except ValueError:
+            print("Try again")
             continue
         except EOFError:
             break
