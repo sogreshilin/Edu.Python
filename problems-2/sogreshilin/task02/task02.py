@@ -227,7 +227,7 @@ class Vector:
                 self[i] *= constant
             return self
 
-        raise TypeError("Unexpected argument type found: {}".format(type(constant)))
+        raise TypeError('Unexpected argument type found: {}'.format(type(constant)))
 
 
 class TestVector(unittest.TestCase):
