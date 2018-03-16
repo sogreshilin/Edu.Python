@@ -227,7 +227,7 @@ class Vector:
                 self[i] *= constant
             return self
 
-        raise NotImplementedError()
+        raise TypeError("Unexpected argument type found: {}".format(type(constant)))
 
 
 class TestVector(unittest.TestCase):
@@ -297,7 +297,7 @@ class TestVector(unittest.TestCase):
             v1 = v1 * Vector([])
 
     def test_imul_vector(self):
-        with self.assertRaises(NotImplementedError):
+        with self.assertRaises(TypeError):
             v1 = Vector([])
             v1 *= Vector([])
 
