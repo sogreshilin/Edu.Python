@@ -25,7 +25,7 @@ def count_bites(filename):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print('Expected file name as a command line argument.'
+        print('Expected file name as a command line argument. '
               'File name was not found', file=sys.stderr)
         sys.exit(-1)
 
