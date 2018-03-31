@@ -1,3 +1,4 @@
+import types
 import unittest
 
 
@@ -41,10 +42,8 @@ class Vector:
         """
         Create vector with specified coordinates.
         The size of vector cannot be changed after vector construction.
-
         :param *args: list or tuple of int, float or complex elements
                       or varargs of int, float or complex elements
-
         """
         if len(args) == 0:
             self._size = 0
@@ -52,8 +51,10 @@ class Vector:
             return
 
         if len(args) == 1:
-            if _is_iterable(args[0]):
+            if isinstance(args[0], (list, tuple)):
                 raw_coordinates = args[0]
+            elif isinstance(args[0], types.GeneratorType):
+                raw_coordinates = list(args[0])
             else:
                 raw_coordinates = [args[0]]
 
@@ -64,7 +65,6 @@ class Vector:
             raise TypeError('Invalid coordinate type: must be a number')
         self._size = len(raw_coordinates)
         self._coordinates = _upgrade_type(raw_coordinates)
-
 
     @classmethod
     def zeros(cls, size):
