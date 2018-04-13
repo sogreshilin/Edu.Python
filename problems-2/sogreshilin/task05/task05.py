@@ -1,3 +1,4 @@
+import codecs
 import sys
 
 freqs = {
@@ -10,7 +11,7 @@ freqs = {
     'ф': 0.00267, 'ъ': 0.00037, 'ё': 0.00013
 }
 
-russian_encodings = ['koi8-r', 'cp866', 'cp1251', 'iso_8859-5', 'mac_cyrillic']
+russian_encodings = ('koi8-r', 'cp866', 'cp1251', 'iso_8859-5', 'mac_cyrillic')
 alphabet = 'АаБбВвГгДдЕеЁёЖжЗзИиЙйКкЛлМмНнОоПпРрСсТтУуФфХхЦцЧчШшЩщЪъЫыЬьЭэЮюЯя'
 alphabet_lower = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
 
@@ -91,8 +92,13 @@ if __name__ == "__main__":
               'File name was not found', file=sys.stderr)
         sys.exit(-1)
 
+    filename = sys.argv[1]
     try:
-        print(guess_encoding(sys.argv[1]))
+        guessed_encoding = guess_encoding(filename)
+        print(f'file encoding = {guessed_encoding}')
+        value = input('Do you want to print file? y/n: ')
+        if value.lower() == 'y':
+            print(codecs.open(filename, encoding=guessed_encoding).read())
 
     except Exception as e:
         print(e, sys.stderr)
