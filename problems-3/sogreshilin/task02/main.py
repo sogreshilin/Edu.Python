@@ -24,8 +24,6 @@ if __name__ == '__main__':
         file.seek(0)
         _skip_first_occurrence(file, 'open')
 
-        np_k = 0
-
         for line in file:
             if not line.startswith('open'):
                 continue
