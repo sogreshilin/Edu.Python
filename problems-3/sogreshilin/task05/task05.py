@@ -277,7 +277,9 @@ class Vector:
 
         if isinstance(constant, str):
             scalar = self._parse_as(constant, (int, float, complex))
-            return Vector(scalar * coordinate for coordinate in self)
+            for i, element in enumerate(self):
+                self[i] *= constant
+            return self
 
         raise TypeError('Unexpected argument type found: {}'.format(type(constant)))
 
