@@ -249,6 +249,10 @@ class Vector:
         if self._is_numeric(other):
             return Vector(other * coordinate for coordinate in self)
 
+        if isinstance(other, str):
+            scalar = self._parse_as(other, (int, float, complex))
+            return Vector(scalar * coordinate for coordinate in self)
+
         elif not isinstance(other, Vector):
             raise TypeError('Unexpected argument type found: {}'.format(type(other)))
 
@@ -267,6 +271,12 @@ class Vector:
 
         """
         if self._is_numeric(constant):
+            for i, element in enumerate(self):
+                self[i] *= constant
+            return self
+
+        if isinstance(constant, str):
+            scalar = self._parse_as(constant, (int, float, complex))
             for i, element in enumerate(self):
                 self[i] *= constant
             return self
