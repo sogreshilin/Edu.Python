@@ -3,7 +3,7 @@ if __name__ == "__main__":
 
     while True:
         try:
-            int(input())
+            print("You entered:", int(input()))
             break
         except ValueError:
             print("Try again")
