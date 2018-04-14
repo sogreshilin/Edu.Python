@@ -1,34 +1,4 @@
-import types
 import unittest
-
-
-def _is_iterable(obj):
-    try:
-        _ = (element for element in obj)
-    except TypeError:
-        return False
-    else:
-        return True
-
-
-def _is_numeric(obj):
-    return isinstance(obj, (int, float, complex))
-
-
-def _max_numeric_type(numbers):
-    types = set(map(lambda number: type(number), numbers))
-    if complex in types:
-        return complex
-    if float in types:
-        return float
-    if int in types:
-        return int
-    return None
-
-
-def _upgrade_type(numbers):
-    max_type = _max_numeric_type(numbers)
-    return [max_type(element) for element in numbers]
 
 
 class Vector:
@@ -42,8 +12,10 @@ class Vector:
         """
         Create vector with specified coordinates.
         The size of vector cannot be changed after vector construction.
+
         :param *args: list or tuple of int, float or complex elements
                       or varargs of int, float or complex elements
+
         """
         if len(args) == 0:
             self._size = 0
@@ -51,20 +23,61 @@ class Vector:
             return
 
         if len(args) == 1:
-            if isinstance(args[0], (list, tuple)):
-                raw_coordinates = args[0]
-            elif isinstance(args[0], types.GeneratorType):
-                raw_coordinates = list(args[0])
-            else:
+            if isinstance(args[0], (int, float, complex, str)):
                 raw_coordinates = [args[0]]
-
+            else:
+                raw_coordinates = list(args[0])
         else:
             raw_coordinates = [*args]
 
-        if any(not _is_numeric(c) for c in raw_coordinates):
-            raise TypeError('Invalid coordinate type: must be a number')
+        raw_coordinates = [self._try_parse(c) for c in raw_coordinates]
         self._size = len(raw_coordinates)
-        self._coordinates = _upgrade_type(raw_coordinates)
+        self._coordinates = self._upgrade_type(raw_coordinates)
+
+    @staticmethod
+    def _try_parse(obj):
+        if Vector._is_numeric(obj):
+            return obj
+        return Vector._parse_as(obj, (int, float, complex))
+
+    @staticmethod
+    def _parse_as(obj, types):
+        for type in types:
+            try:
+                return type(obj)
+            except ValueError:
+                pass
+        raise TypeError('Invalid coordinate type: '
+                        'cannot be converted to a number')
+
+    @staticmethod
+    def _is_iterable(obj):
+        try:
+            _ = (element for element in obj)
+        except TypeError:
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def _is_numeric(obj):
+        return isinstance(obj, (int, float, complex))
+
+    @staticmethod
+    def _max_numeric_type(numbers):
+        types = set(map(lambda number: type(number), numbers))
+        if complex in types:
+            return complex
+        if float in types:
+            return float
+        if int in types:
+            return int
+        return None
+
+    @staticmethod
+    def _upgrade_type(numbers):
+        max_type = Vector._max_numeric_type(numbers)
+        return [max_type(element) for element in numbers]
 
     @classmethod
     def zeros(cls, size):
@@ -142,11 +155,7 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        coordinates = list()
-        for i in range(len(self)):
-            coordinates.append(self[i] + other[i])
-
-        return Vector(coordinates)
+        return Vector(a + b for (a, b) in zip(self, other))
 
     def __iadd__(self, other):
         """
@@ -161,8 +170,8 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        for i in range(len(self)):
-            self[i] += other[i]
+        for i, element in enumerate(other):
+            self[i] += element
 
         return self
 
@@ -173,8 +182,8 @@ class Vector:
         :return: Vector
 
         """
-        for i in range(len(self)):
-            self[i] = -self[i]
+        for i, element in enumerate(self):
+            self[i] = -element
 
         return self
 
@@ -191,11 +200,7 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        coordinates = list()
-        for i in range(len(self)):
-            coordinates.append(self[i] - other[i])
-
-        return Vector(coordinates)
+        return Vector(a - b for a, b in zip(self, other))
 
     def __isub__(self, other):
         """
@@ -210,8 +215,8 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        for i in range(len(self)):
-            self[i] -= other[i]
+        for i, element in enumerate(other):
+            self[i] -= element
 
         return self
 
@@ -240,11 +245,8 @@ class Vector:
         :return: Vector
 
         """
-        if _is_numeric(other):
-            coefficients = list()
-            for i in range(len(self)):
-                coefficients.append(self[i] * other)
-            return Vector(coefficients)
+        if self._is_numeric(other):
+            return Vector(other * coordinate for coordinate in self)
 
         elif not isinstance(other, Vector):
             raise TypeError('Unexpected argument type found: {}'.format(type(other)))
@@ -253,11 +255,7 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        scalar_product = 0
-        for i in range(len(self)):
-            scalar_product += self[i] * other[i]
-
-        return scalar_product
+        return sum(a * b for a, b in zip(self, other))
 
     def __imul__(self, constant):
         """
@@ -267,8 +265,8 @@ class Vector:
         :return: Vector
 
         """
-        if _is_numeric(constant):
-            for i in range(len(self)):
+        if self._is_numeric(constant):
+            for i, element in enumerate(self):
                 self[i] *= constant
             return self
 
@@ -283,6 +281,8 @@ class TestConstructor(unittest.TestCase):
         v = Vector(3.14)
         v = Vector(42)
         v = Vector(42 + 42J)
+        v = Vector('3.14')
+        v = Vector('3.14+6.28j')
 
     def test_invalid_type_arg(self):
         with self.assertRaises(TypeError):
@@ -291,16 +291,19 @@ class TestConstructor(unittest.TestCase):
             v = Vector([], [], [])
         with self.assertRaises(TypeError):
             v = Vector(('a', 'b', 'c'))
+        with self.assertRaises(TypeError):
+            v = Vector((1.14, '1.14', 'hello world'))
 
     def test_varargs(self):
         v1 = Vector(1, 2, 3, 4)
-        v2 = Vector((1, 2, 3, 4))
+        v2 = Vector((1, 2, 3, 3))
+        v2[3] = 4
         self.assertEqual(v1, v2)
 
     def test_upgrade_type(self):
-        v1 = Vector(1, 2, 3.0)
+        v1 = Vector('1', 2, '3.0')
         self.assertTrue(all(type(element) is float for element in v1))
-        v2 = Vector(1, 2, 3.0 + 1J)
+        v2 = Vector(1, 2, '3.0+1J')
         self.assertTrue(all(type(element) is complex for element in v2))
 
 
@@ -327,7 +330,7 @@ class TestVector(unittest.TestCase):
         self.assertEqual(v1, Vector.ones(3))
 
     def test_sub(self):
-        v1 = Vector([-1, 0, 1])
+        v1 = Vector((-1, 0, 1))
         self.assertEqual(v1 - v1, Vector.zeros(3))
         self.assertEqual(v1 - v1 - v1, -v1)
 
@@ -409,7 +412,32 @@ class TestVector(unittest.TestCase):
         self.assertEqual(v2.__str__(), '(1, 1)')
 
 
+class Vector3D(Vector):
+    def __init__(self, *args):
+        super().__init__(*args)
+        if self._size != 3:
+            raise TypeError('Vector3D must have exactly 3 coordinates')
+
+    def cross(self, other):
+        return Vector3D(
+            self[1] * other[2] - other[1] * self[2],
+            self[2] * other[0] - other[2] * self[0],
+            self[0] * other[1] - other[0] * self[1])
+
+
+class TestVector3D(unittest.TestCase):
+    def test_constructor(self):
+        Vector3D(1, 2, 3.0)
+        with self.assertRaises(TypeError):
+            Vector3D(1)
+        with self.assertRaises(TypeError):
+            Vector3D(1, 2, 3, 4)
+
+    def test_cross(self):
+        v1 = Vector3D(-1, 2, -3)
+        v2 = Vector3D(0, -4, 1)
+        self.assertEqual(v1.cross(v2), Vector3D(-10, 1, 4))
+
+
 if __name__ == '__main__':
     unittest.main()
-
-
