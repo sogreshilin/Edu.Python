@@ -249,6 +249,10 @@ class Vector:
         if self._is_numeric(other):
             return Vector(other * coordinate for coordinate in self)
 
+        if isinstance(other, str):
+            scalar = self._parse_as(other, (int, float, complex))
+            return Vector(scalar * coordinate for coordinate in self)
+
         elif not isinstance(other, Vector):
             raise TypeError('Unexpected argument type found: {}'.format(type(other)))
 
@@ -270,6 +274,10 @@ class Vector:
             for i, element in enumerate(self):
                 self[i] *= constant
             return self
+
+        if isinstance(constant, str):
+            scalar = self._parse_as(constant, (int, float, complex))
+            return Vector(scalar * coordinate for coordinate in self)
 
         raise TypeError('Unexpected argument type found: {}'.format(type(constant)))
 
@@ -355,8 +363,7 @@ class TestVector(unittest.TestCase):
                              complex(2.0, 2.0),
                              complex(3.0, 3.0),
                          ]))
-        with self.assertRaises(TypeError):
-            v1 = v1 * '42'
+        self.assertEqual(v1 * '42', v1 * 42)
 
     def test_imul(self):
         v1 = Vector([1, 2, 3, 4])
