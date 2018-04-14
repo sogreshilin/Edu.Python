@@ -413,5 +413,32 @@ class TestVector(unittest.TestCase):
         self.assertEqual(v2.__str__(), '(1, 1)')
 
 
+class Vector3D(Vector):
+    def __init__(self, *args):
+        super().__init__(*args)
+        if self._size != 3:
+            raise TypeError('Vector3D must have exactly 3 coordinates')
+
+    def cross(self, other):
+        return Vector3D(
+            self[1] * other[2] - other[1] * self[2],
+            self[2] * other[0] - other[2] * self[0],
+            self[0] * other[1] - other[0] * self[1])
+
+
+class TestVector3D(unittest.TestCase):
+    def test_constructor(self):
+        Vector3D(1, 2, 3.0)
+        with self.assertRaises(TypeError):
+            Vector3D(1)
+        with self.assertRaises(TypeError):
+            Vector3D(1, 2, 3, 4)
+
+    def test_cross(self):
+        v1 = Vector3D(-1, 2, -3)
+        v2 = Vector3D(0, -4, 1)
+        self.assertEqual(v1.cross(v2), Vector3D(-10, 1, 4))
+
+
 if __name__ == '__main__':
     unittest.main()
