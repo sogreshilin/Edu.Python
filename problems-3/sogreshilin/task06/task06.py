@@ -2,35 +2,6 @@ import unittest
 import types
 
 
-def _is_iterable(obj):
-    try:
-        _ = (element for element in obj)
-    except TypeError:
-        return False
-    else:
-        return True
-
-
-def _is_numeric(obj):
-    return isinstance(obj, (int, float, complex))
-
-
-def _max_numeric_type(numbers):
-    types = set(map(lambda number: type(number), numbers))
-    if complex in types:
-        return complex
-    if float in types:
-        return float
-    if int in types:
-        return int
-    return None
-
-
-def _upgrade_type(numbers):
-    max_type = _max_numeric_type(numbers)
-    return [max_type(element) for element in numbers]
-
-
 class Vector:
     """
     Vector class represents one-dimensional mathematical vector.
@@ -53,21 +24,61 @@ class Vector:
             return
 
         if len(args) == 1:
-            if isinstance(args[0], (list, tuple)):
-                raw_coordinates = args[0]
-            elif isinstance(args[0], types.GeneratorType):
-                raw_coordinates = list(args[0])
-            else:
+            if isinstance(args[0], (int, float, complex, str)):
                 raw_coordinates = [args[0]]
-
+            else:
+                raw_coordinates = list(args[0])
         else:
             raw_coordinates = [*args]
 
-        if any(not _is_numeric(c) for c in raw_coordinates):
-            raise TypeError('Invalid coordinate type: must be a number')
+        raw_coordinates = [self._try_parse(c) for c in raw_coordinates]
         self._size = len(raw_coordinates)
-        self._coordinates = _upgrade_type(raw_coordinates)
+        self._coordinates = self._upgrade_type(raw_coordinates)
 
+    @staticmethod
+    def _try_parse(obj):
+        if Vector._is_numeric(obj):
+            return obj
+        return Vector._parse_as(obj, (int, float, complex))
+
+    @staticmethod
+    def _parse_as(obj, types):
+        for type in types:
+            try:
+                return type(obj)
+            except ValueError:
+                pass
+        raise TypeError('Invalid coordinate type: '
+                        'cannot be converted to a number')
+
+    @staticmethod
+    def _is_iterable(obj):
+        try:
+            _ = (element for element in obj)
+        except TypeError:
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def _is_numeric(obj):
+        return isinstance(obj, (int, float, complex))
+
+    @staticmethod
+    def _max_numeric_type(numbers):
+        types = set(map(lambda number: type(number), numbers))
+        if complex in types:
+            return complex
+        if float in types:
+            return float
+        if int in types:
+            return int
+        return None
+
+    @staticmethod
+    def _upgrade_type(numbers):
+        max_type = Vector._max_numeric_type(numbers)
+        return [max_type(element) for element in numbers]
 
     @classmethod
     def zeros(cls, size):
@@ -145,11 +156,7 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        coordinates = list()
-        for i in range(len(self)):
-            coordinates.append(self[i] + other[i])
-
-        return Vector(coordinates)
+        return Vector(a + b for (a, b) in zip(self, other))
 
     def __iadd__(self, other):
         """
@@ -164,8 +171,8 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        for i in range(len(self)):
-            self[i] += other[i]
+        for i, element in enumerate(other):
+            self[i] += element
 
         return self
 
@@ -176,8 +183,8 @@ class Vector:
         :return: Vector
 
         """
-        for i in range(len(self)):
-            self[i] = -self[i]
+        for i, element in enumerate(self):
+            self[i] = -element
 
         return self
 
@@ -194,11 +201,7 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        coordinates = list()
-        for i in range(len(self)):
-            coordinates.append(self[i] - other[i])
-
-        return Vector(coordinates)
+        return Vector(a - b for a, b in zip(self, other))
 
     def __isub__(self, other):
         """
@@ -213,8 +216,8 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        for i in range(len(self)):
-            self[i] -= other[i]
+        for i, element in enumerate(other):
+            self[i] -= element
 
         return self
 
@@ -243,7 +246,7 @@ class Vector:
         :return: Vector
 
         """
-        if _is_numeric(other):
+        if self._is_numeric(other):
             return Vector(other * coordinate for coordinate in self)
 
         elif not isinstance(other, Vector):
@@ -253,11 +256,7 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        scalar_product = 0
-        for i in range(len(self)):
-            scalar_product += self[i] * other[i]
-
-        return scalar_product
+        return sum(a * b for a, b in zip(self, other))
 
     def __imul__(self, constant):
         """
@@ -267,8 +266,8 @@ class Vector:
         :return: Vector
 
         """
-        if _is_numeric(constant):
-            for i in range(len(self)):
+        if self._is_numeric(constant):
+            for i, element in enumerate(self):
                 self[i] *= constant
             return self
 
