@@ -19,7 +19,7 @@ class Vector:
         if any(not isinstance(c, (int, float, complex)) for c in coordinates):
             raise ValueError('Invalid coordinate type: must be a number')
         self._size = len(coordinates)
-        self._coordinates = coordinates
+        self._coordinates = list(coordinates)
 
     @classmethod
     def zeros(cls, size):
@@ -97,11 +97,7 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        coordinates = list()
-        for i in range(len(self)):
-            coordinates.append(self[i] + other[i])
-
-        return Vector(coordinates)
+        return Vector([a + b for (a, b) in zip(self, other)])
 
     def __iadd__(self, other):
         """
@@ -116,8 +112,8 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        for i in range(len(self)):
-            self[i] += other[i]
+        for i, element in enumerate(other):
+            self[i] += element
 
         return self
 
@@ -128,8 +124,8 @@ class Vector:
         :return: Vector
 
         """
-        for i in range(len(self)):
-            self[i] = -self[i]
+        for i, element in enumerate(self):
+            self[i] = -element
 
         return self
 
@@ -146,11 +142,7 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        coordinates = list()
-        for i in range(len(self)):
-            coordinates.append(self[i] - other[i])
-
-        return Vector(coordinates)
+        return Vector([a - b for (a, b) in zip(self, other)])
 
     def __isub__(self, other):
         """
@@ -165,8 +157,8 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        for i in range(len(self)):
-            self[i] -= other[i]
+        for i, element in enumerate(other):
+            self[i] -= element
 
         return self
 
@@ -179,6 +171,7 @@ class Vector:
         """
         if len(self) != len(other):
             return False
+
         return all(self[i] == other[i] for i in range(len(self)))
 
     def __mul__(self, other):
@@ -196,10 +189,7 @@ class Vector:
 
         """
         if isinstance(other, (int, float, complex)):
-            coefficients = list()
-            for i in range(len(self)):
-                coefficients.append(self[i] * other)
-            return Vector(coefficients)
+            return Vector([other * c for c in self])
 
         elif not isinstance(other, Vector):
             raise TypeError('Unexpected argument type found: {}'.format(type(other)))
@@ -208,11 +198,7 @@ class Vector:
             raise ValueError('Vectors have different sizes: {} and {}'
                              .format(len(self), len(other)))
 
-        scalar_product = 0
-        for i in range(len(self)):
-            scalar_product += self[i] * other[i]
-
-        return scalar_product
+        return sum([a * b for (a, b) in zip(self, other)])
 
     def __imul__(self, constant):
         """
@@ -223,8 +209,8 @@ class Vector:
 
         """
         if isinstance(constant, (int, float, complex)):
-            for i in range(len(self)):
-                self[i] *= constant
+            for i, element in enumerate(self):
+                self[i] = element * constant
             return self
 
         raise TypeError('Unexpected argument type found: {}'.format(type(constant)))
