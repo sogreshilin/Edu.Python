@@ -8,21 +8,21 @@ def collect_data(file):
     sum_squares = 0
     count = 0
 
-    pattern = b"\d+ usec"
-    usec_length = len(b" usec")
+    pattern = re.compile(b'\d+ usec')
 
     # ignore very first value
     for line in file:
-        if line.startswith(b"open"):
+        if line.startswith(b'open'):
             break
 
     for line in file:
-        if line.startswith(b"open"):
-            index = re.search(pattern, line)
-            value = int(line[index.start():index.end() - usec_length])
-            sum += value
-            sum_squares += value * value
-            count += 1
+        if line.startswith(b'open'):
+            found = pattern.search(line)
+            if found:
+                value = int(found.group(0)[:-5])
+                sum += value
+                sum_squares += value * value
+                count += 1
 
     return count, sum, sum_squares
 
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     filename = sys.argv[1]
     try:
-        with open(filename, "rb") as file:
+        with open(filename, 'rb') as file:
             count, sum, sum_squares = collect_data(file)
 
             if count > 0:
