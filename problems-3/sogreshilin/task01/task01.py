@@ -17,12 +17,10 @@ def collect_data(file):
 
     for line in file:
         if line.startswith(b'open'):
-            found = pattern.search(line)
-            if found:
-                value = int(found.group(0)[:-5])
-                sum += value
-                sum_squares += value * value
-                count += 1
+            value = int(line.split()[2])
+            sum += value
+            sum_squares += value * value
+            count += 1
 
     return count, sum, sum_squares
 
