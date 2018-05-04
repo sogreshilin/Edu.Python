@@ -5,6 +5,10 @@ from io import StringIO
 from urllib.parse import urlparse
 
 
+PHILOSOPHY_PAGES = ("https://en.wikipedia.org/wiki/Philosophy",
+                    "https://ru.wikipedia.org/wiki/%D0%A4%D0%B8%D0%BB%D0%BE%D1%81%D0%BE%D1%84%D0%B8%D1%8F")
+
+
 def remove_text_in_brackets(text):
     rv = StringIO()
     open_brackets = ('(', '[', '{')
@@ -66,7 +70,7 @@ def main(scheme, netloc, path):
         path = link['href']
         url = scheme + '://' + netloc + path
         print(link['title'], url)
-        if path in visited:
+        if path in visited or path in PHILOSOPHY_PAGES:
             break
         visited.append(path)
         req = get(url)
