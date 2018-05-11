@@ -8,6 +8,7 @@ class Vector:
     Vector has typical for vector operations.
 
     """
+    COORDINATE_TYPES = (int, float, complex)
 
     def __init__(self, *args):
         """
@@ -24,10 +25,10 @@ class Vector:
             return
 
         if len(args) == 1:
-            if isinstance(args[0], (int, float, complex, str)):
-                raw_coordinates = [args[0]]
-            else:
+            if Vector._is_iterable(args[0]) and not isinstance(args[0], str):
                 raw_coordinates = list(args[0])
+            else:
+                raw_coordinates = [args[0]]
         else:
             raw_coordinates = [*args]
 
@@ -39,7 +40,7 @@ class Vector:
     def _try_parse(obj):
         if Vector._is_numeric(obj):
             return obj
-        return Vector._parse_as(obj, (int, float, complex))
+        return Vector._parse_as(obj, Vector.COORDINATE_TYPES)
 
     @staticmethod
     def _parse_as(obj, types):
@@ -62,17 +63,14 @@ class Vector:
 
     @staticmethod
     def _is_numeric(obj):
-        return isinstance(obj, (int, float, complex))
+        return isinstance(obj, Vector.COORDINATE_TYPES)
 
     @staticmethod
     def _max_numeric_type(numbers):
         types = set(map(lambda number: type(number), numbers))
-        if complex in types:
-            return complex
-        if float in types:
-            return float
-        if int in types:
-            return int
+        for coordinate_type in reversed(Vector.COORDINATE_TYPES):
+            if coordinate_type in types:
+                return coordinate_type
         return None
 
     @staticmethod
@@ -249,18 +247,16 @@ class Vector:
         if self._is_numeric(other):
             return Vector(other * coordinate for coordinate in self)
 
-        if isinstance(other, str):
-            scalar = self._parse_as(other, (int, float, complex))
-            return Vector(scalar * coordinate for coordinate in self)
+        if isinstance(other, Vector):
+            if len(self) != len(other):
+                raise ValueError('Vectors have different sizes: {} and {}'
+                                 .format(len(self), len(other)))
 
-        elif not isinstance(other, Vector):
-            raise TypeError('Unexpected argument type found: {}'.format(type(other)))
+            return sum(a * b for a, b in zip(self, other))
 
-        if len(self) != len(other):
-            raise ValueError('Vectors have different sizes: {} and {}'
-                             .format(len(self), len(other)))
 
-        return sum(a * b for a, b in zip(self, other))
+        scalar = self._parse_as(other, Vector.COORDINATE_TYPES)
+        return Vector(scalar * coordinate for coordinate in self)
 
     def __imul__(self, constant):
         """
@@ -275,13 +271,10 @@ class Vector:
                 self[i] *= constant
             return self
 
-        if isinstance(constant, str):
-            scalar = self._parse_as(constant, (int, float, complex))
-            for i, element in enumerate(self):
-                self[i] *= constant
-            return self
-
-        raise TypeError('Unexpected argument type found: {}'.format(type(constant)))
+        scalar = self._parse_as(constant, Vector.COORDINATE_TYPES)
+        for i, element in enumerate(self):
+            self[i] *= constant
+        return self
 
 
 class TestConstructor(unittest.TestCase):
