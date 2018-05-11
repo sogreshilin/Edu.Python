@@ -1,10 +1,9 @@
 import shutil
-from tkinter import Tk, Frame, Button, LEFT, X, TOP, FLAT, RAISED, Radiobutton, IntVar, filedialog, messagebox, Canvas, \
-    CENTER, BOTTOM, Scrollbar
+from tkinter import Tk, Frame, Button, \
+    Radiobutton, IntVar, filedialog, messagebox, Canvas, \
+    LEFT, X, TOP, DISABLED, NORMAL
 
 import sys
-
-import time
 
 from task02.field_serializer import FieldSerializer
 from task02.game_model import Game
@@ -39,7 +38,18 @@ class Toolbar(Frame):
                                        command=lambda: command(variable.get()), indicatoron=False)
             radio_button.pack(side=LEFT, fill=X)
 
+    def add_toggle_button(self, text, command, enabled=True):
+        def wrapper():
+            if button['state'] == NORMAL:
+                new_state = DISABLED
+            else:
+                new_state = NORMAL
+            button.config(state=new_state)
+            return command()
 
+        initial_state = NORMAL if enabled else DISABLED
+        button = Button(self, text=text, state=initial_state, command=wrapper)
+        button.pack(side=LEFT, fill=X)
 
 
 class Field:
@@ -56,10 +66,9 @@ class Field:
         self.upper_left_y = 0
 
     def model_changed(self):
-        self._update()
+        self.update()
 
     def fill_cell(self, x, y):
-        print('fill_cell', x, y)
         x1, y1 = x * CELL_SIZE + SHIFT + 1, y * CELL_SIZE + SHIFT + 1
         x2, y2 = (x + 1) * CELL_SIZE + SHIFT - 1, (y + 1) * CELL_SIZE + SHIFT - 1
         self.canvas.create_rectangle(x1, y1, x2, y2, outline=ALIVE_COLOR, fill=ALIVE_COLOR)
@@ -67,11 +76,14 @@ class Field:
     def switch_state(self, x, y):
         cell_x = (x - SHIFT) // CELL_SIZE - self.upper_left_x
         cell_y = (y - SHIFT) // CELL_SIZE - self.upper_left_y
-        print('view::switch_state', cell_x, cell_y)
         self.model.switch_state(cell_x, cell_y)
 
+    def update(self):
+        self.canvas.delete('all')
+        self._draw_grid()
+        self._fill_cells()
+
     def _move_field(self, event):
-        print('key pressed', event.keysym)
         if event.keysym == 'Up':
             self.upper_left_y += 1
         elif event.keysym == 'Right':
@@ -80,13 +92,7 @@ class Field:
             self.upper_left_y -= 1
         elif event.keysym == 'Left':
             self.upper_left_x += 1
-        print('upper left corner:', self.upper_left_x, self.upper_left_y)
-        self._update()
-
-    def _update(self):
-        self.canvas.delete('all')
-        self._draw_grid()
-        self._fill_cells()
+        self.update()
 
     def _draw_grid(self):
         self.canvas.create_line(3, 3, 600, 3, fill='red')
@@ -99,7 +105,6 @@ class Field:
         for x in range(-self.upper_left_x, -self.upper_left_x + FIELD_WIDTH):
             for y in range(-self.upper_left_y, -self.upper_left_y + FIELD_HEIGHT):
                 if (x, y) in self.model.field:
-                    print(f'({x}, {y})')
                     self.fill_cell(x + self.upper_left_x, y + self.upper_left_y)
 
 
@@ -110,9 +115,11 @@ class GameApp:
         self.speed = 1
         self.root = Tk()
         self.toolbar = Toolbar(self.root)
-        self.toolbar.add_buttons((('Load', self.load), ('Save', self.save),
-                                  ('Play', self.play), ('Pause', self.pause)))
-        self.toolbar.add_radio_button_group(buttons={1: 'x1', 2: 'x2', 4: 'x4', 8: 'x8', 16: 'x16', 32: 'x32'},
+        self.toolbar.add_button(text='Load', command=self.load)
+        self.toolbar.add_button(text='Save', command=self.save)
+        self.toolbar.add_radio_button_group(buttons={1: 'Pause', 2: 'Play'}, command=self.on_state_changed)
+        self.toolbar.add_radio_button_group(buttons={1: 'x1',  2: 'x2',   4: 'x4',
+                                                     8: 'x8', 16: 'x16', 32: 'x32'},
                                             command=self.on_speed_changed)
         self.toolbar.pack(side=TOP, fill=X)
         self.canvas = Field(self.root, self.model)
@@ -125,6 +132,7 @@ class GameApp:
             with open(filename, 'r') as file:
                 field = FieldSerializer.deserialize(file)
                 self.model.field = field
+                self.canvas.update()
         except IOError as error:
             messagebox.showerror('Error', 'Invalid file')
             print(error, file=sys.stderr)
@@ -143,8 +151,6 @@ class GameApp:
             print(error, file=sys.stderr)
 
     def play(self):
-        now = time.strftime("%H:%M:%S")
-        print(now)
         self.model.next_state()
         self.job = self.root.after(int(self.speed * 1000), self.play)
 
@@ -155,8 +161,11 @@ class GameApp:
     def on_speed_changed(self, value):
         self.speed = 1 / value
 
-    def switch_state(self, x, y):
-        print(x, y)
+    def on_state_changed(self, value):
+        if value == 1:
+            self.pause()
+        elif value == 2:
+            self.play()
 
 
 if __name__ == '__main__':

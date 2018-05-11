@@ -36,8 +36,6 @@ class Game:
                     next_state.add((x, y))
                 if (x, y) not in current_state and len(self._alive_neighbours(x, y)) == 3:
                     next_state.add((x, y))
-        print('current_state:', current_state)
-        print('next_state   :', next_state)
         self.field = next_state
         self._notify_observers()
 
@@ -46,7 +44,6 @@ class Game:
             self._field.remove((x, y))
         else:
             self._field.add((x, y))
-        print('model::switch_state', x, y)
         self._recompute_field_size()
         self._notify_observers()
 
@@ -69,7 +66,6 @@ class Game:
 
     def _recompute_field_size(self):
         try:
-            print(self._field)
             min_x = min(map(itemgetter(0), self._field))
             max_x = max(map(itemgetter(0), self._field))
         except ValueError:
@@ -81,7 +77,6 @@ class Game:
             min_y, max_y = 0, 0
         self._x_field_bounds = (min_x - 2, max_x + 2)
         self._y_field_bounds = (min_y - 2, max_y + 2)
-        print('bounds: ', self._x_field_bounds, self._y_field_bounds)
 
     def __repr__(self):
         builder = StringIO()
