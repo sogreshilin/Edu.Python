@@ -47,15 +47,6 @@ class Game:
         self._recompute_field_size()
         self._notify_observers()
 
-    def get_field_at(self, x_bounds, y_bounds):
-        width = x_bounds[1] - x_bounds[0]
-        height = y_bounds[1] - y_bounds[0]
-        rv = bitarray(width * height)
-        rv.setall(False)
-        for x, y in product(range(*x_bounds), range(*y_bounds)):
-            rv[(x - x_bounds[0]) * width + (y - y_bounds[0])] = (x, y) in self._field
-        return rv
-
     def _alive_neighbours(self, x, y):
         rv = []
         for i in (x - 1, x, x + 1):
@@ -77,17 +68,6 @@ class Game:
             min_y, max_y = 0, 0
         self._x_field_bounds = (min_x - 2, max_x + 2)
         self._y_field_bounds = (min_y - 2, max_y + 2)
-
-    def __repr__(self):
-        builder = StringIO()
-        for x in range(*self._x_field_bounds):
-            for y in range(*self._y_field_bounds):
-                if (x, y) in self._field:
-                    builder.write("1")
-                else:
-                    builder.write("0")
-            builder.write("\n")
-        return builder.getvalue()
 
     def _notify_observers(self):
         for observer in self._observers:
