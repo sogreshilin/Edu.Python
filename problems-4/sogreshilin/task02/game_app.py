@@ -1,6 +1,6 @@
 import shutil
 from tkinter import Tk, Frame, Button, \
-    Radiobutton, IntVar, filedialog, messagebox, Canvas, \
+    Radiobutton, IntVar, filedialog, Canvas, \
     LEFT, X, TOP, DISABLED, NORMAL
 
 import sys
@@ -134,7 +134,6 @@ class GameApp:
                 self.model.field = field
                 self.canvas.update()
         except IOError as error:
-            messagebox.showerror('Error', 'Invalid file')
             print(error, file=sys.stderr)
 
     def save(self):
@@ -147,7 +146,6 @@ class GameApp:
                 shutil.copyfileobj(buffer, file)
                 buffer.close()
         except IOError as error:
-            messagebox.showerror('Error', 'File was not saved')
             print(error, file=sys.stderr)
 
     def play(self):
