@@ -37,9 +37,9 @@ if __name__ == "__main__":
 
             if count > 0:
                 mean = sum / count
-                std = (sum_squares - sum * sum / count) / count
+                std = math.sqrt((sum_squares - sum * sum / count) / count)
                 print("mean = {}".format(mean))
-                print("std  = {}".format(math.sqrt(std)))
+                print("std  = {}".format(std))
 
             else:
                 print("sample is empty")
