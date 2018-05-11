@@ -27,7 +27,7 @@ class Vector:
             return
 
         if len(args) == 1:
-            if Vector._is_iterable(args[0]):
+            if Vector._is_iterable(args[0]) and not isinstance(args[0], str):
                 raw_coordinates = list(args[0])
             else:
                 raw_coordinates = [args[0]]
