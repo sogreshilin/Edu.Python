@@ -56,9 +56,9 @@ class Field:
     def __init__(self, parent, model):
         self.canvas = Canvas(parent, width=SHIFT + 600, height=SHIFT + 400)
         self._draw_grid()
-        self.canvas.pack()
         self.canvas.bind('<Button-1>', lambda event: self.switch_state(event.x, event.y))
-        parent.bind('<Key>', lambda event: self._move_field(event))
+        parent.bind('<Key>', self._move_field_with_arrows)
+        parent.bind('<MouseWheel>', self._move_field_on_scroll)
 
         self.model = model
         self.model.subscribe(self)
@@ -83,7 +83,19 @@ class Field:
         self._draw_grid()
         self._fill_cells()
 
-    def _move_field(self, event):
+    def origin(self):
+        self.upper_left_x = 0
+        self.upper_left_y = 0
+        self.update()
+
+    def _move_field_on_scroll(self, event):
+        if event.state == 0:
+            self.upper_left_y += event.delta
+        elif event.state == 1:
+            self.upper_left_x += event.delta
+        self.update()
+
+    def _move_field_with_arrows(self, event):
         if event.keysym == 'Up':
             self.upper_left_y += 1
         elif event.keysym == 'Right':
@@ -95,7 +107,6 @@ class Field:
         self.update()
 
     def _draw_grid(self):
-        self.canvas.create_line(3, 3, 600, 3, fill='red')
         for x in range(SHIFT, (FIELD_WIDTH + 1) * CELL_SIZE + SHIFT, CELL_SIZE):
             self.canvas.create_line(x, SHIFT, x, FIELD_HEIGHT * CELL_SIZE + SHIFT, fill=GRID_COLOR)
         for y in range(SHIFT, (FIELD_HEIGHT + 1) * CELL_SIZE + SHIFT, CELL_SIZE):
@@ -107,6 +118,9 @@ class Field:
                 if (x, y) in self.model.field:
                     self.fill_cell(x + self.upper_left_x, y + self.upper_left_y)
 
+    def pack(self):
+        self.canvas.pack()
+
 
 class GameApp:
     def __init__(self):
@@ -114,15 +128,17 @@ class GameApp:
         self.job = None
         self.speed = 1
         self.root = Tk()
+        self.canvas = Field(self.root, self.model)
         self.toolbar = Toolbar(self.root)
         self.toolbar.add_button(text='Load', command=self.load)
         self.toolbar.add_button(text='Save', command=self.save)
+        self.toolbar.add_button(text='Origin', command=self.canvas.origin)
         self.toolbar.add_radio_button_group(buttons={1: 'Pause', 2: 'Play'}, command=self.on_state_changed)
         self.toolbar.add_radio_button_group(buttons={1: 'x1',  2: 'x2',   4: 'x4',
                                                      8: 'x8', 16: 'x16', 32: 'x32'},
                                             command=self.on_speed_changed)
         self.toolbar.pack(side=TOP, fill=X)
-        self.canvas = Field(self.root, self.model)
+        self.canvas.pack()
         self.root.resizable(False, False)
 
     def load(self):
