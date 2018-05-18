@@ -11,12 +11,11 @@ def setup():
     db.create_all()
 
 
-@bp.route('/index')
+@bp.route('/')
 @login_required
 def index():
     users = list()
     users = list(map(lambda user: user.user_name,
                 User.query.filter(User.registration_time > current_user.registration_time).all()))
     print(users)
-    return render_template('index.html', title='Recreation Centers', users=users,
-                           the_last_registered_one=not users)
+    return render_template('index.html', users=users, the_last_registered_one=not users)

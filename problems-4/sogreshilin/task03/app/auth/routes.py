@@ -30,7 +30,7 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(user_name=form.user_name.data).first()
         if user is None:
-            flash('No username with such email found')
+            flash('No user with such username found')
             return redirect(url_for('auth.login'))
         elif not user.check_password(form.password.data):
             flash('Invalid password')

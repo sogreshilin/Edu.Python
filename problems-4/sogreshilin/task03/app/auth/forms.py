@@ -13,7 +13,7 @@ class RegistrationForm(FlaskForm):
     def validate_user_name(self, user_name):
         user = User.query.filter_by(user_name=user_name.data).first()
         if user is not None:
-            raise ValidationError(f'User with name {user_name.data} already exists')
+            raise ValidationError('User with such name already exists')
 
 
 class LoginForm(FlaskForm):
