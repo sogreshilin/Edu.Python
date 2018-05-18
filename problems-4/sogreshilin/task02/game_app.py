@@ -1,3 +1,4 @@
+import cProfile
 import shutil
 from tkinter import Tk, Frame, Button, \
     Radiobutton, IntVar, filedialog, Canvas, \
@@ -115,7 +116,7 @@ class Field:
     def _fill_cells(self):
         for x in range(-self.upper_left_x, -self.upper_left_x + FIELD_WIDTH):
             for y in range(-self.upper_left_y, -self.upper_left_y + FIELD_HEIGHT):
-                if (x, y) in self.model.field:
+                if (x, y) in self.model._field:
                     self.fill_cell(x + self.upper_left_x, y + self.upper_left_y)
 
     def pack(self):
@@ -183,4 +184,5 @@ class GameApp:
 
 
 if __name__ == '__main__':
+    # cProfile.run('GameApp().root.mainloop()')
     GameApp().root.mainloop()

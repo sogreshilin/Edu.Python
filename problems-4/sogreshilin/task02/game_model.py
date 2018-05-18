@@ -1,8 +1,4 @@
-from itertools import product
-from io import StringIO
 from operator import itemgetter
-
-from bitarray import bitarray
 
 
 class Game:
@@ -28,15 +24,24 @@ class Game:
         self._observers.append(observer)
 
     def next_state(self):
-        current_state = self.field.copy()
         next_state = set()
+        x_bound_lo = float('inf')
+        x_bound_hi = float('-inf')
+        y_bound_lo = float('inf')
+        y_bound_hi = float('-inf')
         for x in range(*self._x_field_bounds):
             for y in range(*self._y_field_bounds):
-                if (x, y) in current_state and 2 <= len(self._alive_neighbours(x, y)) <= 3:
+                if (x, y) in self._field and 2 <= self._alive_neighbours_count(x, y) <= 3:
                     next_state.add((x, y))
-                if (x, y) not in current_state and len(self._alive_neighbours(x, y)) == 3:
+                    x_bound_lo, x_bound_hi = self.update_bounds(x, x_bound_lo, x_bound_hi)
+                    y_bound_lo, y_bound_hi = self.update_bounds(y, y_bound_lo, y_bound_hi)
+                if (x, y) not in self._field and self._alive_neighbours_count(x, y) == 3:
                     next_state.add((x, y))
-        self.field = next_state
+                    x_bound_lo, x_bound_hi = self.update_bounds(x, x_bound_lo, x_bound_hi)
+                    y_bound_lo, y_bound_hi = self.update_bounds(y, y_bound_lo, y_bound_hi)
+        self._field = next_state
+        self._x_field_bounds = (x_bound_lo - 2, x_bound_hi + 2)
+        self._y_field_bounds = (y_bound_lo - 2, y_bound_hi + 2)
         self._notify_observers()
 
     def switch_state(self, x, y):
@@ -55,6 +60,26 @@ class Game:
                     rv.append((i, j))
         return tuple(rv)
 
+    def _alive_neighbours_count(self, x, y):
+        counter = 0
+        if (x - 1, y - 1) in self._field:
+            counter += 1
+        if (x, y - 1) in self._field:
+            counter += 1
+        if (x + 1, y - 1) in self._field:
+            counter += 1
+        if (x - 1, y) in self._field:
+            counter += 1
+        if (x + 1, y) in self._field:
+            counter += 1
+        if (x - 1, y + 1) in self._field:
+            counter += 1
+        if (x, y + 1) in self._field:
+            counter += 1
+        if (x + 1, y + 1) in self._field:
+            counter += 1
+        return counter
+
     def _recompute_field_size(self):
         try:
             min_x = min(map(itemgetter(0), self._field))
@@ -72,3 +97,12 @@ class Game:
     def _notify_observers(self):
         for observer in self._observers:
             observer.model_changed()
+
+    def update_bounds(self, x, lo, hi):
+        rv_lo = lo
+        rv_hi = hi
+        if x < lo:
+            rv_lo = x
+        elif x > hi:
+            rv_hi = x
+        return rv_lo, rv_hi
