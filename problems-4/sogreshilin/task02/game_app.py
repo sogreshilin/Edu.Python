@@ -136,7 +136,7 @@ class GameApp:
         self.toolbar.add_button(text='Origin', command=self.canvas.origin)
         self.toolbar.add_radio_button_group(buttons={1: 'Pause', 2: 'Play'}, command=self.on_state_changed)
         self.toolbar.add_radio_button_group(buttons={1: 'x1',  2: 'x2',   4: 'x4',
-                                                     8: 'x8', 16: 'x16', 32: 'x32'},
+                                                     8: 'x8', 16: 'x16'},
                                             command=self.on_speed_changed)
         self.toolbar.pack(side=TOP, fill=X)
         self.canvas.pack()
