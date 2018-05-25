@@ -6,8 +6,8 @@ from tkinter import Tk, Frame, Button, \
 
 import sys
 
-from task02.field_serializer import FieldSerializer
-from task02.game_model import Game
+from field_serializer import FieldSerializer
+from game_model import Game
 
 GRID_COLOR = '#000000'
 ALIVE_COLOR = '#23B334'

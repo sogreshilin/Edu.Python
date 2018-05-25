@@ -62,23 +62,11 @@ class Game:
 
     def _alive_neighbours_count(self, x, y):
         counter = 0
-        if (x - 1, y - 1) in self._field:
-            counter += 1
-        if (x, y - 1) in self._field:
-            counter += 1
-        if (x + 1, y - 1) in self._field:
-            counter += 1
-        if (x - 1, y) in self._field:
-            counter += 1
-        if (x + 1, y) in self._field:
-            counter += 1
-        if (x - 1, y + 1) in self._field:
-            counter += 1
-        if (x, y + 1) in self._field:
-            counter += 1
-        if (x + 1, y + 1) in self._field:
-            counter += 1
-        return counter
+        for i in (x - 1, x, x + 1):
+            for j in (y - 1, y, y + 1):
+                if (i, j) != (x, y) and (i, j) in self._field:
+                    counter += 1
+        return counter      
 
     def _recompute_field_size(self):
         try:
